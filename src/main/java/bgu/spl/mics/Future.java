@@ -18,7 +18,8 @@ public class Future<T> {
 	 * This should be the the only public constructor in this class.
 	 */
 	public Future() {
-		
+		isDone = false;
+		result = null;
 	}
 	
 	/**
@@ -29,23 +30,30 @@ public class Future<T> {
      * @return return the result of type T if it is available, if not wait until it is available.
      * 	       
      */
-	public T get() {
-		
-        return null; 
+	public synchronized T get() {
+		while(result == null) {
+			try {
+				wait();
+				return result;
+			} catch (InterruptedException e) {
+				e.printStackTrace();		//<-- what should I write here
+			}
+		}
+		return null;
 	}
 	
 	/**
      * Resolves the result of this Future object.
      */
 	public void resolve (T result) {
-		
+		this.result = result;
 	}
 	
 	/**
      * @return true if this object has been resolved, false otherwise
      */
 	public boolean isDone() {
-		return null;
+		return result != null;
 	}
 	
 	/**
