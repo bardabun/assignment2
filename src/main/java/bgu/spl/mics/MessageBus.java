@@ -18,7 +18,7 @@ public interface MessageBus {
      * @param type The type to subscribe to,
      * @param m    The subscribing micro-service.
      */
-    <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m);
+    <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) throws InterruptedException;
 
     /**
      * Subscribes {@code m} to receive {@link Broadcast}s of type {@code type}.
@@ -26,7 +26,7 @@ public interface MessageBus {
      * @param type 	The type to subscribe to.
      * @param m    	The subscribing micro-service.
      */
-    void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m);
+    void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) throws InterruptedException;
 
     /**
      * Notifies the MessageBus that the event {@code e} is completed and its
@@ -46,7 +46,7 @@ public interface MessageBus {
      * <p>
      * @param b 	The message to added to the queues.
      */
-    void sendBroadcast(Broadcast b);
+    void sendBroadcast(Broadcast b) throws InterruptedException;
 
     /**
      * Adds the {@link Event} {@code e} to the message queue of one of the
@@ -58,14 +58,14 @@ public interface MessageBus {
      * @return {@link Future<T>} object to be resolved once the processing is complete,
      * 	       null in case no micro-service has subscribed to {@code e.getClass()}.
      */
-    <T> Future<T> sendEvent(Event<T> e);
+    <T> Future<T> sendEvent(Event<T> e) throws InterruptedException;
 
     /**
      * Allocates a message-queue for the {@link MicroService} {@code m}.
      * <p>
      * @param m the micro-service to create a queue for.
      */
-    void register(MicroService m);
+    void register(MicroService m) throws InterruptedException;
 
     /**
      * Removes the message queue allocated to {@code m} via the call to

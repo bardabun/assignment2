@@ -19,12 +19,9 @@ public class MessageBusImpl implements MessageBus {
 	//protected int waitingSendBroadcast = 0;
 	
 	@Override
-	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		try {
-			beforeWrite();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) throws InterruptedException {
+		beforeWrite();
+
 		for(MicroServiceParameters micro: microsData){
 			if(micro.getMicroServiceName().equals(m.getName()))
 				micro.setEventType(type);
@@ -33,12 +30,9 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		try {
-			beforeWrite();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) throws InterruptedException {
+		beforeWrite();
+
 		for(MicroServiceParameters micro: microsData){
 			if(micro.getMicroServiceName().equals(m.getName()))
 				micro.setBroadcastType(type);
@@ -52,12 +46,8 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public void sendBroadcast(Broadcast b) {
-		try {
-			beforeWrite();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	public void sendBroadcast(Broadcast b) throws InterruptedException {
+		beforeWrite();
 
 		for(MicroServiceParameters micro: microsData){
 			if(micro.getBroadcastType().equals(b.getClass()))
@@ -67,12 +57,8 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public <T> Future<T> sendEvent(Event<T> e) {
-		try {
-			beforeWrite();
-		} catch (InterruptedException exception) {
-			exception.printStackTrace();
-		}
+	public <T> Future<T> sendEvent(Event<T> e) throws InterruptedException {
+		beforeWrite();
 		roundRobinManner(e);
 		afterWrite();
         return null;
@@ -81,7 +67,7 @@ public class MessageBusImpl implements MessageBus {
 	private void roundRobinManner(Message e){
 		if (e.toString().equals(AttackEvent)){
 			for(MicroServiceParameters micro: microsData) {
-				if(micro.getEventType().equals(AttackEvent) &&)
+				if(micro.getEventType().equals(AttackEvent))
 					micro.getQ().add(e);
 			}
 		}
@@ -93,12 +79,8 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public void register(MicroService m) {
-		try {
-			beforeWrite();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	public void register(MicroService m) throws InterruptedException {
+		beforeWrite();
 
 		String name = m.getName();
 		microsData.add(new MicroServiceParameters(name));
