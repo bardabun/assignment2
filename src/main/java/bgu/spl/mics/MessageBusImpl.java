@@ -8,11 +8,12 @@ import java.util.*;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private List<MicroServiceParameters> microsData;
+	private List<MicroServiceParameters> microsData = new ArrayList<>();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
-	protected int waitingWriters = 0;
+	protected int waitingWriter = 0;
+	protected int waitingSendBroadcast = 0;
 	
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
@@ -43,19 +44,33 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void register(MicroService m) {
-		if(microsData == null)
-
-
+		String name = m.getName();
+		microsData.add(new MicroServiceParameters(name));
 	}
 
 	@Override
 	public void unregister(MicroService m) {
-		microQueues.remove(m.getName());
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		
-		return null;
+		beforeRead();
+		Message output = null;
+		for(MicroServiceParameters micro: microsData)
+			if(micro.getMicroServiceName().equals(m.getName())){
+				output = (micro.getQ()).poll();
+			}
+
+		return output;
+	}
+
+	protected synchronized void beforeRead() throws InterruptedException {
+		while(!(waitingSendBroadcast == 0 && waitingWriter == 0 && activeWriters == 0))
+			wait();
+		activeReaders++;
+	}
+	protected synchronized  void afterRead() {
+		activeReaders--;
+		notifyAll();
 	}
 }

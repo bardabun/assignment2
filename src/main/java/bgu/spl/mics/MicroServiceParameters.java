@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 
+import java.util.LinkedList;
 import java.util.Queue;
 
 /**
@@ -9,7 +10,7 @@ import java.util.Queue;
  */
 public class MicroServiceParameters {
     private String microServiceName;
-    private Queue q;
+    private final Queue<Message> q = new LinkedList<>();
     private Message messageType;
 
     public MicroServiceParameters(String microServiceName) {
@@ -24,12 +25,8 @@ public class MicroServiceParameters {
         this.microServiceName = microServiceName;
     }
 
-    public Queue getQ() {
+    public Queue<Message> getQ() {
         return q;
-    }
-
-    public void setQ(Queue q) {
-        this.q = q;
     }
 
     public Message getMessageType() {
