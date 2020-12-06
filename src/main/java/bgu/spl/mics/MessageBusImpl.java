@@ -1,12 +1,18 @@
 package bgu.spl.mics;
 
+import java.util.*;
+
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
  * Write your implementation here!
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	
+	private List<MicroServiceParameters> microsData;
+
+	protected int activeReaders = 0;
+	protected int activeWriters = 0;
+	protected int waitingWriters = 0;
 	
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
@@ -37,12 +43,14 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void register(MicroService m) {
-		
+		if(microsData == null)
+
+
 	}
 
 	@Override
 	public void unregister(MicroService m) {
-		
+		microQueues.remove(m.getName());
 	}
 
 	@Override
