@@ -11,7 +11,8 @@ import java.util.Queue;
 public class MicroServiceParameters {
     private String microServiceName;
     private final Queue<Message> q = new LinkedList<>();
-    private Message messageType;
+    private Object eventType;
+    private Object broadcastType;
 
     public MicroServiceParameters(String microServiceName) {
         this.microServiceName = microServiceName;
@@ -29,11 +30,19 @@ public class MicroServiceParameters {
         return q;
     }
 
-    public Message getMessageType() {
-        return messageType;
+    public Object getEventType() {
+        return eventType;
     }
 
-    public void setMessageType(Message messageType) {
-        this.messageType = messageType;
+    public void setEventType(Object eventType) {
+        this.eventType = eventType;
+    }
+
+    public Object getBroadcastType() {
+        return broadcastType;
+    }
+
+    public void setBroadcastType(Object broadcastType) {
+        this.broadcastType = broadcastType;
     }
 }
