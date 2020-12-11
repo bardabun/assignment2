@@ -1,8 +1,10 @@
 package bgu.spl.mics;
 
 import bgu.spl.mics.application.messages.AttackEvent;
+import jdk.internal.misc.FileSystemOption;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
@@ -10,8 +12,11 @@ import java.util.*;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private final List<MicroServiceParameters> microsData = new ArrayList<>();
-	Iterator<MicroServiceParameters> iter = microsData.iterator();
+	private final ConcurrentHashMap<String, String> registeredMicro = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, Vector<String>> eventTypeMicro = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, Vector<String>> broadcastTypeMicro = new ConcurrentHashMap<>();
+
+
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
 	protected int waitingWriters = 0;
@@ -22,9 +27,16 @@ public class MessageBusImpl implements MessageBus {
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		for(MicroServiceParameters micro: microsData){
-			if(micro.getMicroServiceName().equals(m.getName()))
-				micro.setEventType(type);
+		try{
+			if (!eventTypeMicro.containsKey(m.getName()))
+				eventTypeMicro.put(m.getName(), new Vector<String>());
+
+			Vector<String> microEventTypes = eventTypeMicro.get(m.getName());
+			String eventName = type.getName();
+			if (!microEventTypes.contains(eventName))
+				microEventTypes.add(eventName);
+		} catch(Exception e){
+			System.out.println("We Have A Problem :/\nMaybe we didn't register " + m.getName() + " yet?");
 		}
 		afterWrite();
 	}
@@ -33,9 +45,17 @@ public class MessageBusImpl implements MessageBus {
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		for(MicroServiceParameters micro: microsData){
-			if(micro.getMicroServiceName().equals(m.getName()))
-				micro.setBroadcastType(type);
+		String micro = m.getName();
+		try{
+			if (!broadcastTypeMicro.containsKey(micro))
+				eventTypeMicro.put(micro, new Vector<String>());
+
+			Vector<String> microBroadcastTypes = broadcastTypeMicro.get(micro);
+			String broadcastType = type.getName();
+			if (!microBroadcastTypes.contains(broadcastType))
+				microBroadcastTypes.add(broadcastType);
+		} catch(Exception e){
+			System.out.println("We Have A Problem :/\nMaybe we didn't register " + micro + " yet?");
 		}
 		afterWrite();
     }
