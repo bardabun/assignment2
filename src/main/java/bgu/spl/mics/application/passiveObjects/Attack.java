@@ -13,11 +13,25 @@ public class Attack {
     final List<Integer> serials;
     final int duration;
 
+
     /**
      * Constructor.
      */
     public Attack(List<Integer> serialNumbers, int duration) {
         this.serials = serialNumbers;
         this.duration = duration;
+    }
+
+    public List<Integer> getEwoks(){
+        return serials;
+    }
+
+    public int Duration(){
+        return duration;
+    }
+
+    @Override
+    public String toString() {
+        return serials.toString() + duration;
     }
 }
