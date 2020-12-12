@@ -18,8 +18,9 @@ package bgu.spl.mics;
  * Only private fields and methods may be added to this class.
  * <p>
  */
-public abstract class MicroService implements Runnable {
+public abstract class MicroService implements Runnable { // we may use protected for diary (forum)
     private final String name;
+    private boolean terminate;
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -27,8 +28,9 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
     	this.name = name;
+    	terminate=false;
     }
-
+    protected MessageBusImpl msgBus= MessageBusImpl.getInstance();
     /**
      * Subscribes to events of type {@code type} with the callback
      * {@code callback}. This means two things:
@@ -103,10 +105,8 @@ public abstract class MicroService implements Runnable {
      */
     protected final void sendBroadcast(Broadcast b) {
         try {
-            MessageBusImpl.getInstance().sendBroadcast(b);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+            msgBus.sendBroadcast(b);
+        } catch (InterruptedException e) {}
     }
 
     /**
@@ -133,7 +133,7 @@ public abstract class MicroService implements Runnable {
      * message.
      */
     protected final void terminate() {
-    	
+    	terminate= true;
     }
 
     /**
@@ -149,7 +149,12 @@ public abstract class MicroService implements Runnable {
      * otherwise you will end up in an infinite loop.
      */
     @Override
-    public final void run() {
+    public final void run() {//registration , initialization , unregister
+        initialize();
+    while(!terminate){
+
+    }
+
     }
 
 }
