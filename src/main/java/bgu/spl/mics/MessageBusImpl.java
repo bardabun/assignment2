@@ -2,6 +2,7 @@ package bgu.spl.mics;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -10,34 +11,42 @@ import java.util.concurrent.atomic.AtomicReference;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private final Map<String, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<String, LinkedList<Message>>();
-	private final Map<String, Vector<String>> eventTypeMicro = new ConcurrentHashMap<>();
-	private final Map<String, Vector<String>> broadcastTypeMicro = new ConcurrentHashMap<>();
-	//Round-Robin Manner fields:
-	Queue<String> roundRobinQueue = new LinkedList<String>();
-	Iterator<String> roundRobinIter = registeredMicro.keySet().iterator();
+	private final Map<MicroService, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<>();
+	private final Map<Class<? extends Event<?>>, LinkedBlockingDeque<MicroService>> eventTypeMicro = new ConcurrentHashMap<>();
+	private final Map<Class<? extends Broadcast>, LinkedBlockingDeque<MicroService>> broadcastTypeMicro = new ConcurrentHashMap<>();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
 	protected int waitingWriters = 0;
-	private final String AttackEvent = "AttackEvent";
 	//protected int waitingSendBroadcast = 0;
-	
+
+	private static class MessageBusHolder {
+		private static MessageBusImpl instance = new MessageBusImpl();
+	}
+
+	private MessageBusImpl() {
+	}
+
+	public static MessageBusImpl getInstance() {
+		return MessageBusHolder.instance;
+	}
+
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		if(registeredMicro.containsKey(m.getName())){
-			if (!eventTypeMicro.containsKey(m.getName()))
-				eventTypeMicro.put(m.getName(), new Vector<String>());
+		if(registeredMicro.containsKey(m)) {
+			if (!eventTypeMicro.containsKey(type))
+				eventTypeMicro.put(type, new LinkedBlockingDeque<>());
 
-			Vector<String> microEventTypes = eventTypeMicro.get(m.getName());
-			String eventName = type.getName();
-			if (!microEventTypes.contains(eventName))
-				microEventTypes.add(eventName);
+			eventTypeMicro.computeIfPresent(type, (key, microQueue) -> {
+				microQueue.add(m);
+				return microQueue;
+			});
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
 		}
+
 		afterWrite();
 	}
 
@@ -45,18 +54,18 @@ public class MessageBusImpl implements MessageBus {
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		String micro = m.getName();
-		if(registeredMicro.containsKey(m.getName())){
-			if (!broadcastTypeMicro.containsKey(micro))
-				eventTypeMicro.put(micro, new Vector<String>());
+		if(registeredMicro.containsKey(m)) {
+			if (!broadcastTypeMicro.containsKey(type))
+				broadcastTypeMicro.put(type, new LinkedBlockingDeque<>());
 
-			Vector<String> microBroadcastTypes = broadcastTypeMicro.get(micro);
-			String broadcastType = type.getName();
-			if (!microBroadcastTypes.contains(broadcastType))
-				microBroadcastTypes.add(broadcastType);
+			broadcastTypeMicro.computeIfPresent(type, (key, microQueue) -> {
+				microQueue.add(m);
+				return microQueue;
+			});
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
 		}
+
 		afterWrite();
     }
 
@@ -69,45 +78,36 @@ public class MessageBusImpl implements MessageBus {
 	public void sendBroadcast(Broadcast b) throws InterruptedException {
 		beforeWrite();
 
-		for (Map.Entry<String, Vector<String>> entry : broadcastTypeMicro.entrySet()) {
-			Vector<String> broadcastType = entry.getValue();
-			if (broadcastType.contains(b.getType())) {
+		if(broadcastTypeMicro.containsKey(b)){
+			for(MicroService micro : broadcastTypeMicro.get(b))
+				registeredMicro.get(micro).add(b);
+		} else
+			System.out.println("Broadcast type: " + b + " has no registered MicroServices");
 
-				String entryKey = entry.getKey();
-				registeredMicro.computeIfPresent(entryKey, (key, microQueue) -> {
-					microQueue.add(b);
-					return microQueue;
-				});
-
-			}
-		}
 		afterWrite();
 	}
 
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) throws InterruptedException {
 		beforeWrite();
-		roundRobinManner(e);
+
+		if(eventTypeMicro.containsKey(e) && !eventTypeMicro.get(e).isEmpty()) {
+
+			LinkedBlockingDeque<MicroService> microsQueue = eventTypeMicro.get(e);
+			MicroService micro = microsQueue.poll();
+			registeredMicro.get(micro).add(e);
+			microsQueue.add(micro);
+		}
 		afterWrite();
         return null;
-	}
-
-	private void roundRobinManner(Message m){
-		for (Map.Entry<String, Vector<String>> entry : eventTypeMicro.entrySet()) {
-			if (entry.getValue().contains(m.toString())) {
-				roundRobinQueue.add(entry.getKey());
-
-			}
-		}
 	}
 
 	@Override
 	public void register(MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		String microName = m.getName();
-		if(!registeredMicro.containsKey(microName))
-			registeredMicro.put(microName, new LinkedList<Message>());
+		if(!registeredMicro.containsKey(m))
+			registeredMicro.put(m, new LinkedList<Message>());
 
 		afterWrite();
 	}
@@ -116,7 +116,6 @@ public class MessageBusImpl implements MessageBus {
 	public void unregister(MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		String microToRemove = m.getName();
 		try{
 			broadcastTypeMicro.remove(microToRemove);
 			eventTypeMicro.remove(microToRemove);
@@ -129,7 +128,7 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public Message awaitMessage(MicroService m) throws InterruptedException {
+	public Message awaitMessage(MicroService m) throws InterruptedException {	//take method of blocking queue
 		beforeRead();
 		Message output = null;
 		try {

@@ -36,7 +36,7 @@ public class Future<T> {
 				wait();
 				return result;
 			} catch (InterruptedException e) {
-				e.printStackTrace();		//<-- what should I write here
+				e.printStackTrace();
 			}
 		}
 		return null;

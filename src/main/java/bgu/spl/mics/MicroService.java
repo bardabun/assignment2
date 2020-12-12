@@ -102,7 +102,11 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
-    	
+        try {
+            MessageBusImpl.getInstance().sendBroadcast(b);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

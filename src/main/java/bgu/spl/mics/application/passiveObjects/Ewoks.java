@@ -17,7 +17,12 @@ public class Ewoks {
         private static Ewoks instance = new Ewoks(size);
 
     }
+    private Ewoks() {
 
+    }
+    public static Ewoks getInstance() {
+        return SingletonHolder.instance;
+    }
     private Ewoks(int size) {
         this.size = size;
     }
@@ -30,9 +35,6 @@ public class Ewoks {
         }
     }
 
-    public static Ewoks getInstance() {
 
-        return SingletonHolder.instance;
-    }
 }
 
