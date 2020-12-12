@@ -11,10 +11,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private final Map<MicroService, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<>();
-	private final Map<Class<? extends Event<?>>, LinkedBlockingDeque<MicroService>> eventTypeMicro = new ConcurrentHashMap<>();
-	private final Map<Class<? extends Broadcast>, LinkedBlockingDeque<MicroService>> broadcastTypeMicro = new ConcurrentHashMap<>();
-	private final Map<MicroService, LinkedList<Message>> microReferences = new ConcurrentHashMap<>();
+	private Map<MicroService, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<>();
+	private Map<Class<? extends Event<?>>, LinkedBlockingDeque<MicroService>> eventTypeMicro = new ConcurrentHashMap<>();
+	private Map<Class<? extends Broadcast>, LinkedBlockingDeque<MicroService>> broadcastTypeMicro = new ConcurrentHashMap<>();
+	private Map<MicroService, LinkedList<Message>> microReferences = new ConcurrentHashMap<>();
+	private Map<Class<? extends Event<?>>, Future<?>> eventsFuture = new ConcurrentHashMap<>();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
@@ -44,6 +45,10 @@ public class MessageBusImpl implements MessageBus {
 				microQueue.add(m);
 				return microQueue;
 			});
+			if(!microReferences.containsKey(m))
+				microReferences.put(m, new LinkedList<>());
+			microReferences.get(m).add(type);		// <-------------------------
+
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
 		}
@@ -63,6 +68,10 @@ public class MessageBusImpl implements MessageBus {
 				microQueue.add(m);
 				return microQueue;
 			});
+			if(!microReferences.containsKey(m))
+				microReferences.put(m, new LinkedList<>());
+			microReferences.get(m).add(type);		//<-----------------------------------
+
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
 		}
@@ -118,9 +127,13 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		try{
-			broadcastTypeMicro.remove(microToRemove);
-			eventTypeMicro.remove(microToRemove);
-			registeredMicro.remove(microToRemove);
+			for(Message ref : microReferences.get(m)){
+				if(ref instanceof Event<?>)
+					eventTypeMicro.get(ref).remove(m);		//<----------------------------
+				else
+					broadcastTypeMicro.get(ref).remove(m);		//<---------------------------
+			}
+			registeredMicro.remove(m);
 		}catch(Exception e){
 			System.out.println(e);
 		}
@@ -131,12 +144,12 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {	//take method of blocking queue
 		beforeRead();
+
 		Message output = null;
 		try {
-			Queue<Message> q = registeredMicro.get(m.getName());
-			output = q.poll();
+			output = registeredMicro.get(m).poll();
 		}catch (NullPointerException e){
-			System.out.println(m.getName() + " doesn't exist int the hashMap ");
+			System.out.println(m.getName() + " doesn't exist in the Map ");
 		}
 
 		afterRead();
