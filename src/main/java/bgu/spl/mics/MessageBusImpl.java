@@ -1,10 +1,8 @@
 package bgu.spl.mics;
 
-import bgu.spl.mics.application.messages.AttackEvent;
-import jdk.internal.misc.FileSystemOption;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
@@ -12,10 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private final ConcurrentHashMap<String, String> registeredMicro = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<String, Vector<String>> eventTypeMicro = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<String, Vector<String>> broadcastTypeMicro = new ConcurrentHashMap<>();
-
+	private final Map<String, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<String, LinkedList<Message>>();
+	private final Map<String, Vector<String>> eventTypeMicro = new ConcurrentHashMap<>();
+	private final Map<String, Vector<String>> broadcastTypeMicro = new ConcurrentHashMap<>();
+	//Round-Robin Manner fields:
+	Queue<String> roundRobinQueue = new LinkedList<String>();
+	Iterator<String> roundRobinIter = registeredMicro.keySet().iterator();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
@@ -27,7 +27,7 @@ public class MessageBusImpl implements MessageBus {
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		try{
+		if(registeredMicro.containsKey(m.getName())){
 			if (!eventTypeMicro.containsKey(m.getName()))
 				eventTypeMicro.put(m.getName(), new Vector<String>());
 
@@ -35,8 +35,8 @@ public class MessageBusImpl implements MessageBus {
 			String eventName = type.getName();
 			if (!microEventTypes.contains(eventName))
 				microEventTypes.add(eventName);
-		} catch(Exception e){
-			System.out.println("We Have A Problem :/\nMaybe we didn't register " + m.getName() + " yet?");
+		} else{
+			System.out.println("You didn't register " + m.getName() + " yet");
 		}
 		afterWrite();
 	}
@@ -46,7 +46,7 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		String micro = m.getName();
-		try{
+		if(registeredMicro.containsKey(m.getName())){
 			if (!broadcastTypeMicro.containsKey(micro))
 				eventTypeMicro.put(micro, new Vector<String>());
 
@@ -54,8 +54,8 @@ public class MessageBusImpl implements MessageBus {
 			String broadcastType = type.getName();
 			if (!microBroadcastTypes.contains(broadcastType))
 				microBroadcastTypes.add(broadcastType);
-		} catch(Exception e){
-			System.out.println("We Have A Problem :/\nMaybe we didn't register " + micro + " yet?");
+		} else{
+			System.out.println("You didn't register " + m.getName() + " yet");
 		}
 		afterWrite();
     }
@@ -69,9 +69,17 @@ public class MessageBusImpl implements MessageBus {
 	public void sendBroadcast(Broadcast b) throws InterruptedException {
 		beforeWrite();
 
-		for(MicroServiceParameters micro: microsData){
-			if(micro.getBroadcastType().equals(b.getClass()))
-				micro.getQ().add(b);
+		for (Map.Entry<String, Vector<String>> entry : broadcastTypeMicro.entrySet()) {
+			Vector<String> broadcastType = entry.getValue();
+			if (broadcastType.contains(b.getType())) {
+
+				String entryKey = entry.getKey();
+				registeredMicro.computeIfPresent(entryKey, (key, microQueue) -> {
+					microQueue.add(b);
+					return microQueue;
+				});
+
+			}
 		}
 		afterWrite();
 	}
@@ -84,16 +92,11 @@ public class MessageBusImpl implements MessageBus {
         return null;
 	}
 
-	private void roundRobinManner(Message e){
-		if (e.toString().equals(AttackEvent)){
-			for(MicroServiceParameters micro: microsData) {
-				if(micro.getEventType().equals(AttackEvent))
-					micro.getQ().add(e);
-			}
-		}
-		else {
-			for(MicroServiceParameters micro: microsData) {
-				micro.getQ().add(e);
+	private void roundRobinManner(Message m){
+		for (Map.Entry<String, Vector<String>> entry : eventTypeMicro.entrySet()) {
+			if (entry.getValue().contains(m.toString())) {
+				roundRobinQueue.add(entry.getKey());
+
 			}
 		}
 	}
@@ -102,24 +105,40 @@ public class MessageBusImpl implements MessageBus {
 	public void register(MicroService m) throws InterruptedException {
 		beforeWrite();
 
-		String name = m.getName();
-		microsData.add(new MicroServiceParameters(name));
+		String microName = m.getName();
+		if(!registeredMicro.containsKey(microName))
+			registeredMicro.put(microName, new LinkedList<Message>());
 
 		afterWrite();
 	}
 
 	@Override
-	public void unregister(MicroService m) {
+	public void unregister(MicroService m) throws InterruptedException {
+		beforeWrite();
+
+		String microToRemove = m.getName();
+		try{
+			broadcastTypeMicro.remove(microToRemove);
+			eventTypeMicro.remove(microToRemove);
+			registeredMicro.remove(microToRemove);
+		}catch(Exception e){
+			System.out.println(e);
+		}
+
+		afterWrite();
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
 		beforeRead();
 		Message output = null;
-		for(MicroServiceParameters micro: microsData)
-			if(micro.getMicroServiceName().equals(m.getName())){
-				output = (micro.getQ()).poll();
-			}
+		try {
+			Queue<Message> q = registeredMicro.get(m.getName());
+			output = q.poll();
+		}catch (NullPointerException e){
+			System.out.println(m.getName() + " doesn't exist int the hashMap ");
+		}
+
 		afterRead();
 		return output;
 	}

@@ -75,7 +75,7 @@ public interface MessageBus {
      * <p>
      * @param m the micro-service to unregister.
      */
-    void unregister(MicroService m);
+    void unregister(MicroService m) throws InterruptedException;
 
     /**
      * Using this method, a <b>registered</b> micro-service can take message
