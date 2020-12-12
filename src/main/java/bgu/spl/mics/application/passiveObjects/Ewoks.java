@@ -10,5 +10,29 @@ package bgu.spl.mics.application.passiveObjects;
  * You can add ONLY private methods and fields to this class.
  */
 public class Ewoks {
+    private static int size;
+    private Ewok[] ewoks;
 
+    private static class SingletonHolder {
+        private static Ewoks instance = new Ewoks(size);
+
+    }
+
+    private Ewoks(int size) {
+        this.size = size;
+    }
+
+    public void initialize(int size) {
+        ewoks = new Ewok[size + 1];
+        for (int i = 0; i <= size; i++) {
+            Ewok tmp = new Ewok(size);
+            ewoks[i] = tmp;
+        }
+    }
+
+    public static Ewoks getInstance() {
+
+        return SingletonHolder.instance;
+    }
 }
+
