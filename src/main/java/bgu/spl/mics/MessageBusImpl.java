@@ -47,7 +47,7 @@ public class MessageBusImpl implements MessageBus {
 			});
 			if(!microReferences.containsKey(m))
 				microReferences.put(m, new LinkedList<>());
-			microReferences.get(m).add(type);		// <-------------------------
+			microReferences.get(m).add(type);		// <--------------------------
 
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
