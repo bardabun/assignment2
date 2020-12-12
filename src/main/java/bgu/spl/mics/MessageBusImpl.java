@@ -14,6 +14,7 @@ public class MessageBusImpl implements MessageBus {
 	private final Map<MicroService, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<>();
 	private final Map<Class<? extends Event<?>>, LinkedBlockingDeque<MicroService>> eventTypeMicro = new ConcurrentHashMap<>();
 	private final Map<Class<? extends Broadcast>, LinkedBlockingDeque<MicroService>> broadcastTypeMicro = new ConcurrentHashMap<>();
+	private final Map<MicroService, LinkedList<Message>> microReferences = new ConcurrentHashMap<>();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
