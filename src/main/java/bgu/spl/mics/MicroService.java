@@ -1,5 +1,9 @@
 package bgu.spl.mics;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
+
 /**
  * The MicroService is an abstract class that any micro-service in the system
  * must extend. The abstract MicroService class is responsible to get and
@@ -21,6 +25,7 @@ package bgu.spl.mics;
 public abstract class MicroService implements Runnable { // we may use protected for diary (forum)
     private final String name;
     private boolean terminate;
+    private Map<Class<? extends Message>, Callback<?>>  callBacks = new ConcurrentHashMap<>();
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -28,7 +33,7 @@ public abstract class MicroService implements Runnable { // we may use protected
      */
     public MicroService(String name) {
     	this.name = name;
-    	terminate=false;
+    	terminate = false;
     }
     protected MessageBusImpl msgBus= MessageBusImpl.getInstance();
     /**
@@ -133,7 +138,7 @@ public abstract class MicroService implements Runnable { // we may use protected
      * message.
      */
     protected final void terminate() {
-    	terminate= true;
+    	terminate = true;
     }
 
     /**
@@ -151,9 +156,15 @@ public abstract class MicroService implements Runnable { // we may use protected
     @Override
     public final void run() {//registration , initialization , unregister
         initialize();
-    while(!terminate){
-
-    }
+        try {
+        while(!terminate){
+            Message action = MessageBusImpl.getInstance().awaitMessage(this);
+            callBacks.get(action.getClass()).call(action);
+        }
+            MessageBusImpl.getInstance().unregister(this);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
     }
 

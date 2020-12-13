@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 
 import bgu.spl.mics.Message;
+import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AttackEvent;
 import bgu.spl.mics.application.passiveObjects.Ewok;
@@ -27,15 +28,24 @@ public class HanSoloMicroservice extends MicroService {
     }
 
     public void acquireEwoks(int size) {
-        for ()
+
     }
 
     @Override
     protected void initialize() {
-    subscribeEvent(AttackEvent.class, callback -> {
+
+        MessageBusImpl messageBus = MessageBusImpl.getInstance();
+        try {
+            messageBus.register(this);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        subscribeEvent(AttackEvent.class, callback -> {
         List<Integer> ewoksSerialsNum = callback.getAttack().getSerials();
         //ewoksAvailability.acquireEwoks(ewoksSerialsNum.size());
 
     });
+         */
     }
 }
