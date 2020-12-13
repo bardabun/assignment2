@@ -6,7 +6,9 @@ import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AttackEvent;
 import bgu.spl.mics.application.passiveObjects.Ewok;
+import bgu.spl.mics.application.passiveObjects.Ewoks;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,18 +36,20 @@ public class HanSoloMicroservice extends MicroService {
     @Override
     protected void initialize() {
 
-        MessageBusImpl messageBus = MessageBusImpl.getInstance();
-        try {
-            messageBus.register(this);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         subscribeEvent(AttackEvent.class, callback -> {
         List<Integer> ewoksSerialsNum = callback.getAttack().getSerials();
         //ewoksAvailability.acquireEwoks(ewoksSerialsNum.size());
+            ewoksSerialsNum.sort(Comparator.comparingInt());
+            for(int i : ewoksSerialsNum)
+                Ewoks[i].require();
+
+            try{
+                sleep(callback.duration)
+            } catch(Exception e){
+                for(int i: ewoksSerialsNum)
+                    Ewoks[i].realease
+            }
 
     });
-         */
     }
 }

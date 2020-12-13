@@ -58,7 +58,11 @@ public abstract class MicroService implements Runnable { // we may use protected
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-    	
+        try {
+            msgBus.subscribeEvent(type,this);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -82,7 +86,11 @@ public abstract class MicroService implements Runnable { // we may use protected
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
-    	
+        try {
+            msgBus.subscribeBroadcast(type,this);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -98,8 +106,11 @@ public abstract class MicroService implements Runnable { // we may use protected
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-    	
-        return null; 
+        try {
+            return msgBus.sendEvent(e);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
+        }
     }
 
     /**
@@ -156,16 +167,18 @@ public abstract class MicroService implements Runnable { // we may use protected
     @Override
     public final void run() {//registration , initialization , unregister
         initialize();
+
         try {
+            msgBus.register(this);
         while(!terminate){
             Message action = MessageBusImpl.getInstance().awaitMessage(this);
-            callBacks.get(action.getClass()).call(action);
+            Callback to = callBacks.get(action.getClass());
+            to.call(action);
         }
-            MessageBusImpl.getInstance().unregister(this);
+            msgBus.unregister(this);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
 }

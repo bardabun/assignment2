@@ -3,7 +3,8 @@ import bgu.spl.mics.Event;
 import bgu.spl.mics.application.passiveObjects.Attack;
 
 public class AttackEvent implements Event<Boolean> {
-	public Attack getAttack(){return null;};
+	private Attack attack;
+	public Attack getAttack(){return attack;};
 
 	@Override
 	public String getType() {
