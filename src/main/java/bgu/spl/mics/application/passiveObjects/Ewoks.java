@@ -23,8 +23,9 @@ public class Ewoks {
     public static Ewoks getInstance() {
         return SingletonHolder.instance;
     }
+
     private Ewoks(int size) {
-        this.size = size;
+        this.size = size;           //<------------- size should be static no??
     }
 
     public void initialize(int size) {

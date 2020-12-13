@@ -34,4 +34,6 @@ public class Attack {
     public String toString() {
         return serials.toString() + duration;
     }
+
+    public List<Integer> getSerials() {return serials;}
 }
