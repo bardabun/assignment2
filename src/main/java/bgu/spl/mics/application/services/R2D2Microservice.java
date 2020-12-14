@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.BombDestroyerEvent;
+import bgu.spl.mics.application.messages.TerminationBroadcast;
 
 /**
  * R2D2Microservices is in charge of the handling {@link DeactivationEvent}.
@@ -11,13 +13,24 @@ import bgu.spl.mics.MicroService;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class R2D2Microservice extends MicroService {
-
+    long duration;
     public R2D2Microservice(long duration) {
+
         super("R2D2");
+        this.duration = duration;
     }
 
     @Override
     protected void initialize() {
+        subscribeBroadcast(TerminationBroadcast.class, (TerminationBroadcast terminationBroadcast) ->{
+            terminate();
+            docTermination();
+        });
+
+        subscribeEvent(BombDestroyerEvent.class, (BombDestroyerEvent bombDestroyEvent) -> {
+            Thread.sleep(duration);
+            sendBroadcast(new TerminationBroadcast());
+        });
 
     }
 }
