@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,15 +32,14 @@ public class Future<T> {
      * 	       
      */
 	public synchronized T get() {
-		while(result == null) {
+		while(!isDone) {
 			try {
 				wait();
-				return result;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		return null;
+		return result;
 	}
 	
 	/**
@@ -47,14 +47,13 @@ public class Future<T> {
      */
 	public void resolve (T result) {
 		this.result = result;
+		isDone = true;
 	}
 	
 	/**
      * @return true if this object has been resolved, false otherwise
      */
-	public boolean isDone() {
-		return result != null;
-	}
+	public boolean isDone() { return isDone; }
 	
 	/**
      * retrieves the result the Future object holds if it has been resolved,
@@ -68,8 +67,14 @@ public class Future<T> {
      *         elapsed, return null.
      */
 	public T get(long timeout, TimeUnit unit) {
-		
-        return null;
+		while(!isDone  ) {
+			try {
+				wait(timeout);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
 	}
 
 }

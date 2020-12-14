@@ -22,14 +22,15 @@ public class Attack {
         this.duration = duration;
     }
 
-    public List<Integer> getEwoks(){
+    public List<Integer> getSerieals(){
         return serials;
     }
 
     public int getDuration(){
         return duration;
     }
-
+    public  int getSerialsSize(){
+        return serials.size();}
     @Override
     public String toString() {
         return serials.toString() + duration;

@@ -11,11 +11,14 @@ import java.util.concurrent.atomic.AtomicReference;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private Map<MicroService, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<>();
-	private Map<Class<? extends Event<?>>, LinkedBlockingDeque<MicroService>> eventTypeMicro = new ConcurrentHashMap<>();
-	private Map<Class<? extends Broadcast>, LinkedBlockingDeque<MicroService>> broadcastTypeMicro = new ConcurrentHashMap<>();
+	//Mapping MicroService's Messages queues
+	private Map<MicroService, LinkedList<Class<? extends Message>>> registeredMicro = new ConcurrentHashMap<>();
+	//Mapping Message's MicroServices queues
+	private Map<Class<? extends Message>, LinkedBlockingDeque<MicroService>> messageTypeMicro = new ConcurrentHashMap<>();
+	//Mapping All microService's references in the other maps
 	private Map<MicroService, LinkedList<Class<? extends Message>>> microReferences = new ConcurrentHashMap<>();
-	private Map<Class<? extends Event<?>>, Future<?>> eventsFuture = new ConcurrentHashMap<>();
+	//Mapping each future ot it's event
+	private Map<Class<? extends Event<?>>, Future> eventsFuture = new ConcurrentHashMap<>();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
@@ -38,16 +41,17 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		if(registeredMicro.containsKey(m)) {
-			if (!eventTypeMicro.containsKey(type))
-				eventTypeMicro.put(type, new LinkedBlockingDeque<>());
+			if (!messageTypeMicro.containsKey(type))
+				messageTypeMicro.put(type, new LinkedBlockingDeque<>());
 
-			eventTypeMicro.computeIfPresent(type, (key, microQueue) -> {
+			messageTypeMicro.computeIfPresent(type, (key, microQueue) -> {
 				microQueue.add(m);
 				return microQueue;
 			});
+
 			if(!microReferences.containsKey(m))
 				microReferences.put(m, new LinkedList<>());
-			microReferences.get(m).add(type);		// <--------------------------
+			microReferences.get(m).add(type);
 
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
@@ -61,16 +65,16 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		if(registeredMicro.containsKey(m)) {
-			if (!broadcastTypeMicro.containsKey(type))
-				broadcastTypeMicro.put(type, new LinkedBlockingDeque<>());
+			if (!messageTypeMicro.containsKey(type))
+				messageTypeMicro.put(type, new LinkedBlockingDeque<>());
 
-			broadcastTypeMicro.computeIfPresent(type, (key, microQueue) -> {
+			messageTypeMicro.computeIfPresent(type, (key, microQueue) -> {
 				microQueue.add(m);
 				return microQueue;
 			});
 			if(!microReferences.containsKey(m))
 				microReferences.put(m, new LinkedList<>());
-			microReferences.get(m).add(type);		//<-----------------------------------
+			microReferences.get(m).add(type);
 
 		} else{
 			System.out.println("You didn't register " + m.getName() + " yet");
@@ -81,16 +85,17 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override @SuppressWarnings("unchecked")
 	public <T> void complete(Event<T> e, T result) {	//it's change the future to isdone // that how Lia could know when all the attacks is done and she could say to r2d2 to take off the shields
-		
+		eventsFuture.get(e.getClass()).resolve(result);
+		notifyAll();
 	}
 
 	@Override
 	public void sendBroadcast(Broadcast b) throws InterruptedException {
 		beforeWrite();
 
-		if(broadcastTypeMicro.containsKey(b)){
-			for(MicroService micro : broadcastTypeMicro.get(b))
-				registeredMicro.get(micro).add(b);
+		if(messageTypeMicro.containsKey(b.getClass())){
+			for(MicroService micro : messageTypeMicro.get(b.getClass()))
+				registeredMicro.get(micro).add(b.getClass());
 		} else
 			System.out.println("Broadcast type: " + b + " has no registered MicroServices");
 
@@ -101,23 +106,27 @@ public class MessageBusImpl implements MessageBus {
 	public <T> Future<T> sendEvent(Event<T> e) throws InterruptedException {
 		beforeWrite();
 
-		if(eventTypeMicro.containsKey(e) && !eventTypeMicro.get(e).isEmpty()) {
+		if(messageTypeMicro.containsKey(e.getClass()) && !messageTypeMicro.get(e.getClass()).isEmpty()) {
 
-			LinkedBlockingDeque<MicroService> microsQueue = eventTypeMicro.get(e);
+			LinkedBlockingDeque<MicroService> microsQueue = messageTypeMicro.get(e.getClass());
 			MicroService micro = microsQueue.poll();
-			registeredMicro.get(micro).add(e);
+			registeredMicro.get(micro).add(e.getClass());
 			microsQueue.add(micro);
+
+			eventsFuture.put(e.getClass() ,new Future<T>());	//					<-----------------------
 		}
+
 		afterWrite();
-        return null;
+        return eventsFuture.get(e.getClass());					//				<-----------------------
 	}
+
 
 	@Override
 	public void register(MicroService m) throws InterruptedException {
 		beforeWrite();
 
 		if(!registeredMicro.containsKey(m))
-			registeredMicro.put(m, new LinkedList<Message>());
+			registeredMicro.put(m, new LinkedList<Class<? extends Message>>>());
 
 		afterWrite();
 	}
@@ -127,11 +136,9 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		try{
-			for(Message ref : microReferences.get(m)){
-				if(ref instanceof Event<?>)
-					eventTypeMicro.get(ref).remove(m);		//<----------------------------
-				else
-					broadcastTypeMicro.get(ref).remove(m);		//<---------------------------
+			for(Class<? extends Message> ref : microReferences.get(m)){
+
+				messageTypeMicro.get(ref).remove(m);
 			}
 			registeredMicro.remove(m);
 		}catch(Exception e){
@@ -145,7 +152,7 @@ public class MessageBusImpl implements MessageBus {
 	public Message awaitMessage(MicroService m) throws InterruptedException {	//take method of blocking queue
 		beforeRead();
 
-		Message output = null;
+		Class<? extends Message> output = null;
 		try {
 			output = registeredMicro.get(m).poll();
 		}catch (NullPointerException e){
@@ -153,7 +160,7 @@ public class MessageBusImpl implements MessageBus {
 		}
 
 		afterRead();
-		return output;
+		return output;									//<------------------
 	}
 
 	protected synchronized void beforeRead() throws InterruptedException {

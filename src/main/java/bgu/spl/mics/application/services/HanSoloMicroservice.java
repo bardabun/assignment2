@@ -35,19 +35,22 @@ public class HanSoloMicroservice extends MicroService {
 
     @Override
     protected void initialize() {
-
         subscribeEvent(AttackEvent.class, callback -> {
         List<Integer> ewoksSerialsNum = callback.getAttack().getSerials();
         //ewoksAvailability.acquireEwoks(ewoksSerialsNum.size());
-            ewoksSerialsNum.sort(Comparator.comparingInt());
-            for(int i : ewoksSerialsNum)
-                Ewoks[i].require();
+            ewoksSerialsNum.sort(Comparator.comparingInt(Integer::intValue));//?????
+           Ewoks ew =  Ewoks.getInstance();
+           //ask tomorrow where the initialize of the ewok happening
+           ew.initialize(callback.getAttack().getSerialsSize(), ewoksSerialsNum.get(i));
+            //e.sort();
+            for(int i : ewoksSerialsNum){
 
+                ew[i].acquire();
             try{
-                sleep(callback.duration)
+                Thread.sleep(callback.getAttack().getDuration());
             } catch(Exception e){
                 for(int i: ewoksSerialsNum)
-                    Ewoks[i].realease
+                    ew[i]
             }
 
     });
