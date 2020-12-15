@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class MessageBusImpl implements MessageBus {
 	//Mapping MicroService's Messages queues
-	private Map<MicroService, LinkedList<Class<? extends Message>>> registeredMicro = new ConcurrentHashMap<>();
+	private Map<MicroService, LinkedList<Message>> registeredMicro = new ConcurrentHashMap<>();
 	//Mapping Message's MicroServices queues
 	private Map<Class<? extends Message>, LinkedBlockingDeque<MicroService>> messageTypeMicro = new ConcurrentHashMap<>();
 	//Mapping All microService's references in the other maps
@@ -95,7 +95,7 @@ public class MessageBusImpl implements MessageBus {
 
 		if(messageTypeMicro.containsKey(b.getClass())){
 			for(MicroService micro : messageTypeMicro.get(b.getClass()))
-				registeredMicro.get(micro).add(b.getClass());
+				registeredMicro.get(micro).add(b);
 		} else
 			System.out.println("Broadcast type: " + b + " has no registered MicroServices");
 
@@ -110,7 +110,7 @@ public class MessageBusImpl implements MessageBus {
 
 			LinkedBlockingDeque<MicroService> microsQueue = messageTypeMicro.get(e.getClass());
 			MicroService micro = microsQueue.poll();
-			registeredMicro.get(micro).add(e.getClass());
+			registeredMicro.get(micro).add(e);
 			microsQueue.add(micro);
 
 			eventsFuture.put(e ,new Future<T>());
@@ -126,7 +126,7 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		if(!registeredMicro.containsKey(m))
-			registeredMicro.put(m, new LinkedList<Class<? extends Message>>());
+			registeredMicro.put(m, new LinkedList<Message>());
 
 		afterWrite();
 	}
@@ -152,7 +152,7 @@ public class MessageBusImpl implements MessageBus {
 	public Message awaitMessage(MicroService m) throws InterruptedException {	//take method of blocking queue
 		beforeRead();
 
-		Class<? extends Message> output = null;
+		Message output = null;
 		try {
 			output = registeredMicro.get(m).poll();
 		}catch (NullPointerException e){

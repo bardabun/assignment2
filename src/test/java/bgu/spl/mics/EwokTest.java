@@ -11,14 +11,13 @@ public class EwokTest {
 
     @Test
     void acquireTest(){
-        assertTrue(e.acquire());
-        assertFalse(e.available);
-        assertFalse(e.acquire());
+        e.acquire();
+        assertFalse(e.getAvailability());
     }
 
     @Test
     void releaseTest(){
         e.release();
-        assertTrue(e.available);
+        assertTrue(e.getAvailability());
     }
 }
