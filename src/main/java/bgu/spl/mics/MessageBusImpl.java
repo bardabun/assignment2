@@ -178,7 +178,7 @@ public class MessageBusImpl implements MessageBus {
 		while (!(activeReaders == 0 && activeWriters == 0)) {
 			wait();
 		}
-		waitingWriters++;
+		waitingWriters--;
 		activeWriters++;
 	}
 	protected synchronized void afterWrite() {

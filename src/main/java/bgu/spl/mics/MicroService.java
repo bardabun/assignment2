@@ -174,16 +174,22 @@ public abstract class MicroService implements Runnable { // we may use protected
      */
     @Override
     public final void run() {//registration , initialization , unregister
+        try{
+        msgBus.register(this);
+
         initialize();
 
-        try {
-            msgBus.register(this);
+
+
         while(!terminate){
             Message action = MessageBusImpl.getInstance().awaitMessage(this);
-            Callback to = callBacks.get(action.getClass());
-            to.call(action);
+            if(action != null) {
+                Callback to = callBacks.get(action.getClass());
+                to.call(action);
+            }
         }
             msgBus.unregister(this);
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

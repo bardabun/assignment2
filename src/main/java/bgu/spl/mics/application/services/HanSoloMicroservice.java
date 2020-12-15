@@ -46,6 +46,7 @@ public class HanSoloMicroservice extends MicroService {
 
     @Override
     protected void initialize() {
+
         subscribeBroadcast(TerminationBroadcast.class, (TerminationBroadcast terminationBroadcast) -> {
             terminate();
             diary.HanSoloTerminate= System.currentTimeMillis();
