@@ -84,9 +84,10 @@ public class MessageBusImpl implements MessageBus {
     }
 
 	@Override @SuppressWarnings("unchecked")
-	public <T> void complete(Event<T> e, T result) {	//it's change the future to isdone // that how Lia could know when all the attacks is done and she could say to r2d2 to take off the shields
-		eventsFuture.get(e.getClass()).resolve(result);
-		notifyAll();
+	public <T> void complete(Event<T> e, T result) throws InterruptedException {	//it's change the future to isdone // that how Lia could know when all the attacks is done and she could say to r2d2 to take off the shields
+		beforeWrite();
+		eventsFuture.get(e).resolve(result);
+		afterWrite();
 	}
 
 	@Override

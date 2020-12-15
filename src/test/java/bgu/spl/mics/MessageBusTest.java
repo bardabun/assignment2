@@ -67,12 +67,21 @@ class MessageBusTest {
     void complete() {
         Event<Boolean> test = new TestEventer();
 
-        bus.subscribeEvent(TestEventer.class, m2);
+        try {
+            bus.register(m2);
+            bus.subscribeEvent(TestEventer.class, m2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Future<Boolean> boolFuture = m1.sendEvent(test);
 
         assert boolFuture != null;
+        try {
+            bus.complete(test, true);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         boolFuture.resolve(true);
-        bus.complete(test, true);
         assertTrue(boolFuture.get());
 
     }

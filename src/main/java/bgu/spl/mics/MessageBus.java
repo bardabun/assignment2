@@ -38,7 +38,7 @@ public interface MessageBus {
      * @param e      The completed event.
      * @param result The resolved result of the completed event.
      */
-    <T> void complete(Event<T> e, T result);
+    <T> void complete(Event<T> e, T result) throws InterruptedException;
 
     /**
      * Adds the {@link Broadcast} {@code b} to the message queues of all the

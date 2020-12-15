@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.BombDestroyerEvent;
+import bgu.spl.mics.application.messages.DeactivationEvent;
 import bgu.spl.mics.application.messages.TerminationBroadcast;
 import bgu.spl.mics.application.passiveObjects.Diary;
 
@@ -30,7 +31,7 @@ public class R2D2Microservice extends MicroService {
 
         });
 
-        subscribeEvent(BombDestroyerEvent.class, (BombDestroyerEvent bombDestroyEvent) -> {
+        subscribeEvent(DeactivationEvent.class, (DeactivationEvent deactivationEvent) -> {
             Thread.sleep(duration);
             diary.R2D2Deactivate = System.currentTimeMillis();
         });

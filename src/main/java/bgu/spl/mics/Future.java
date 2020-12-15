@@ -1,6 +1,5 @@
 package bgu.spl.mics;
 
-import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,6 +47,7 @@ public class Future<T> {
 	public void resolve (T result) {
 		this.result = result;
 		isDone = true;
+//		notifyAll();
 	}
 	
 	/**
@@ -67,7 +67,7 @@ public class Future<T> {
      *         elapsed, return null.
      */
 	public T get(long timeout, TimeUnit unit) {
-		while(!isDone  ) {
+		while(!isDone) {
 			try {
 				wait(timeout);
 			} catch (InterruptedException e) {
