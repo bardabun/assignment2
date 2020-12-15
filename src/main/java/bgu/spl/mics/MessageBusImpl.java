@@ -54,7 +54,7 @@ public class MessageBusImpl implements MessageBus {
 			microReferences.get(m).add(type);
 
 		} else{
-			System.out.println("You didn't register " + m.getName() + " yet");
+			System.out.println("You didn't register '" + m.getName() + "' yet");
 		}
 
 		afterWrite();
@@ -77,7 +77,7 @@ public class MessageBusImpl implements MessageBus {
 			microReferences.get(m).add(type);
 
 		} else{
-			System.out.println("You didn't register " + m.getName() + " yet");
+			System.out.println("You didn't register '" + m.getName() + "' yet");
 		}
 
 		afterWrite();

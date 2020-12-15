@@ -13,7 +13,7 @@ class MessageBusTest {
     MicroService m2 = new TestMicroService("second");
 
     @Test
-    void testSendBroadcast() {  //<--!!! is that exception ok?bus.register(m1);
+    void testSendBroadcast() {
         try {
             bus.register(m1);
         } catch (InterruptedException e) {
@@ -38,6 +38,7 @@ class MessageBusTest {
         Event<Boolean> test1 = new TestEventer();
 
         try {
+            bus.register(m2);
             bus.subscribeEvent(TestEventer.class, m2);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -58,6 +59,7 @@ class MessageBusTest {
 
     @Test
     void testAwaitMessage() throws InterruptedException {
+        bus.register(m1);
 
         Message test = bus.awaitMessage(m1);
         assertNotEquals(test,null);

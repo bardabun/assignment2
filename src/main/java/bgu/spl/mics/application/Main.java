@@ -14,7 +14,7 @@ import java.io.IOException;
 public class Main {
 	public static void main(String[] args) throws IOException {
 		JsonInputReader reader = new JsonInputReader();
-		Input input = reader.getInputFromJson("C:\\Users\\Yonatan\\IdeaProjects\\Assignment2\\SPL211\\input.json");
+		Input input = JsonInputReader.getInputFromJson("C:\\Users\\Bar\\IdeaProjects\\assignment2\\src\\main\\java\\bgu\\spl\\mics\\application\\input.java");
 		Attack[] attacks = input.getAttacks();
 		long R2D2Duration = input.getR2D2();
 		long LandoDuration = input.getLando();
