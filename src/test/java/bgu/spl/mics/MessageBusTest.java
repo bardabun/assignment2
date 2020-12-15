@@ -76,11 +76,7 @@ class MessageBusTest {
         Future<Boolean> boolFuture = m1.sendEvent(test);
 
         assert boolFuture != null;
-        try {
-            bus.complete(test, true);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        m2.complete(test, true);
         boolFuture.resolve(true);
         assertTrue(boolFuture.get());
 

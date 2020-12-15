@@ -2,7 +2,6 @@ package bgu.spl.mics;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * The MicroService is an abstract class that any micro-service in the system
