@@ -11,6 +11,7 @@ import bgu.spl.mics.application.messages.BombDestroyerEvent;
 import bgu.spl.mics.application.messages.DeactivationEvent;
 import bgu.spl.mics.application.messages.TerminationBroadcast;
 import bgu.spl.mics.application.passiveObjects.Attack;
+import bgu.spl.mics.application.passiveObjects.Diary;
 
 /**
  * LeiaMicroservices Initialized with Attack objects, and sends them as  {@link AttackEvents}.
@@ -23,6 +24,7 @@ import bgu.spl.mics.application.passiveObjects.Attack;
 public class LeiaMicroservice extends MicroService {
 	private Attack[] attacks;
 	private List<Future> futures;
+	private Diary diary;
 
     public LeiaMicroservice(Attack[] attacks) {
         super("Leia");
@@ -33,7 +35,8 @@ public class LeiaMicroservice extends MicroService {
     @Override
     protected void initialize() {
     	subscribeBroadcast(TerminationBroadcast.class, (TerminationBroadcast terminationBroadcast) -> {
-            terminate();
+            diary.LeiaTerminate=System.currentTimeMillis();
+    	    terminate();
         });
 
         try{

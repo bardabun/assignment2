@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.BombDestroyerEvent;
 import bgu.spl.mics.application.messages.TerminationBroadcast;
+import bgu.spl.mics.application.passiveObjects.Diary;
 
 /**
  * R2D2Microservices is in charge of the handling {@link DeactivationEvent}.
@@ -14,6 +15,7 @@ import bgu.spl.mics.application.messages.TerminationBroadcast;
  */
 public class R2D2Microservice extends MicroService {
     long duration;
+    private Diary diary;
     public R2D2Microservice(long duration) {
 
         super("R2D2");
@@ -23,12 +25,14 @@ public class R2D2Microservice extends MicroService {
     @Override
     protected void initialize() {
         subscribeBroadcast(TerminationBroadcast.class, (TerminationBroadcast terminationBroadcast) ->{
+            diary.R2D2Terminate = System.currentTimeMillis();
             terminate();
-            docTermination();
+
         });
 
         subscribeEvent(BombDestroyerEvent.class, (BombDestroyerEvent bombDestroyEvent) -> {
             Thread.sleep(duration);
+            diary.R2D2Deactivate = System.currentTimeMillis();
             sendBroadcast(new TerminationBroadcast());
         });
 
