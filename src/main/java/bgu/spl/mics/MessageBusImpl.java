@@ -18,7 +18,7 @@ public class MessageBusImpl implements MessageBus {
 	//Mapping All microService's references in the other maps
 	private Map<MicroService, LinkedList<Class<? extends Message>>> microReferences = new ConcurrentHashMap<>();
 	//Mapping each future ot it's event
-	private Map<Class<? extends Event<?>>, Future> eventsFuture = new ConcurrentHashMap<>();
+	private Map<Message, Future> eventsFuture = new ConcurrentHashMap<>();
 
 	protected int activeReaders = 0;
 	protected int activeWriters = 0;
@@ -113,11 +113,11 @@ public class MessageBusImpl implements MessageBus {
 			registeredMicro.get(micro).add(e.getClass());
 			microsQueue.add(micro);
 
-			eventsFuture.put(e.getClass() ,new Future<T>());	//					<-----------------------
+			eventsFuture.put(e ,new Future<T>());
 		}
 
 		afterWrite();
-        return eventsFuture.get(e.getClass());					//				<-----------------------
+        return eventsFuture.get(e);					//				<-----------------------
 	}
 
 
@@ -126,7 +126,7 @@ public class MessageBusImpl implements MessageBus {
 		beforeWrite();
 
 		if(!registeredMicro.containsKey(m))
-			registeredMicro.put(m, new LinkedList<Class<? extends Message>>>());
+			registeredMicro.put(m, new LinkedList<Class<? extends Message>>());
 
 		afterWrite();
 	}
