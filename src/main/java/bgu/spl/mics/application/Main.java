@@ -7,6 +7,8 @@ import bgu.spl.mics.application.services.*;
 
 import java.io.IOException;
 
+import static bgu.spl.mics.application.passiveObjects.JsonInputReader.getInputFromJson;
+
 /** This is the Main class of the application. You should parse the input file,
  * create the different components of the application, and run the system.
  * In the end, you should output a JSON.
@@ -14,7 +16,7 @@ import java.io.IOException;
 public class Main {
 	public static void main(String[] args) throws IOException {
 		JsonInputReader reader = new JsonInputReader();
-		Input input = JsonInputReader.getInputFromJson("C:\\Users\\Bar\\IdeaProjects\\assignment2\\src\\main\\java\\bgu\\spl\\mics\\application\\input.java");
+		Input input = getInputFromJson("/home/spl211/IdeaProjects/ass2/src/main/java/bgu/spl/mics/application/Input.java");
 		Attack[] attacks = input.getAttacks();
 		long R2D2Duration = input.getR2D2();
 		long LandoDuration = input.getLando();

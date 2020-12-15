@@ -1,21 +1,12 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.Callback;
-import bgu.spl.mics.Message;
-import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AttackEvent;
 import bgu.spl.mics.application.messages.TerminationBroadcast;
 import bgu.spl.mics.application.passiveObjects.Attack;
 import bgu.spl.mics.application.passiveObjects.Diary;
-import bgu.spl.mics.application.passiveObjects.Ewok;
 import bgu.spl.mics.application.passiveObjects.Ewoks;
-import java.io.DataInput;
-import java.util.Comparator;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * HanSoloMicroservices is in charge of the handling {@link AttackEvents}.
  * This class may not hold references for objects which it is not responsible for:
