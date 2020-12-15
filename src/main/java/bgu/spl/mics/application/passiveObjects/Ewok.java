@@ -31,7 +31,7 @@ public class Ewok {
      */
     public void release() {
     	available = true;
-    	notifyAll();
+    	//notifyAll();
     }
 
     public boolean getAvailability(){

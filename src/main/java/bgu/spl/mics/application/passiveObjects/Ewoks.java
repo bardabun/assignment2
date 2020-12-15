@@ -13,7 +13,7 @@ public class Ewoks {
     private Ewok[] ewoks;
 
     public void setEwoks(int size) {
-        ewoks = new Ewok[ size];
+        ewoks = new Ewok[size];
         for (int i = 0; i < size; i++) {
             Ewok tmp = new Ewok(i+1);
             ewoks[i] = tmp;
@@ -21,7 +21,7 @@ public class Ewoks {
     }
 
     public void release(Integer num) {
-        ewoks[num].release();
+        ewoks[num-1].release();
     }
 
     private static class SingletonHolder {
@@ -35,8 +35,8 @@ public class Ewoks {
         return SingletonHolder.instance;
     }
     public boolean acquire(int num) {
-        if (ewoks[num].available) {
-            ewoks[num].acquire();
+        if (ewoks[num-1].available) {
+            ewoks[num-1].acquire();
             return true;
         }
         return false;
