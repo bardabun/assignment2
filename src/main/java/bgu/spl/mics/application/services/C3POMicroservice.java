@@ -40,6 +40,7 @@ public class C3POMicroservice extends MicroService {
         }
         diary.C3POFinish = System.currentTimeMillis();
         diary.totalAttacks.incrementAndGet();
+        complete(att, true);
     };
 
     public C3POMicroservice(Ewoks ewoks) {

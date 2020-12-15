@@ -44,6 +44,7 @@ public class HanSoloMicroservice extends MicroService {
         }
         diary.HanSoloFinish = System.currentTimeMillis();
         diary.totalAttacks.incrementAndGet();
+        complete(att, true);
     };
 
 

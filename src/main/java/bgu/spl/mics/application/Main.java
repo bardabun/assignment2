@@ -24,11 +24,12 @@ public class Main {
 		Diary dairy = Diary.getInstance();
 		long termination_time ;
 
+		Thread Leia = new Thread(new LeiaMicroservice(attacks));
 		Thread HanSolo = new Thread(new HanSoloMicroservice(ewoks));
 		Thread C3PO = new Thread(new C3POMicroservice(ewoks));
 		Thread R2D2 = new Thread(new R2D2Microservice(R2D2Duration));
 		Thread Lando = new Thread(new LandoMicroservice(LandoDuration));
-		Thread Leia = new Thread(new LeiaMicroservice(attacks));
+		//System.out.println(System.currentTimeMillis());
 
 		// Leia need to sleep at first because need to let other subscribe for events first
 		Leia.start();

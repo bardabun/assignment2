@@ -141,7 +141,11 @@ public abstract class MicroService implements Runnable { // we may use protected
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-    	
+        try {
+            msgBus.complete(e,result);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
+        }
     }
 
     /**

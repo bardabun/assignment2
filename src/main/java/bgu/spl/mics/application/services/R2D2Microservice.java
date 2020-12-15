@@ -36,6 +36,7 @@ public class R2D2Microservice extends MicroService {
             Thread.sleep(duration);}
             catch (InterruptedException e){}
             diary.R2D2Deactivate = System.currentTimeMillis();
+            complete(deactivationEvent, true);
         });
 
     }
