@@ -12,6 +12,14 @@ package bgu.spl.mics.application.passiveObjects;
 public class Ewoks {
     private Ewok[] ewoks;
 
+    public void setEwoks(int size) {
+        ewoks = new Ewok[ size];
+        for (int i = 0; i < size; i++) {
+            Ewok tmp = new Ewok(i+1);
+            ewoks[i] = tmp;
+        }
+    }
+
     public void release(Integer num) {
         ewoks[num].release();
     }
@@ -33,14 +41,5 @@ public class Ewoks {
         }
         return false;
     }
-    public void initialize(int size, int serialNum) {
-        ewoks = new Ewok[ size + 1];
-        for (int i = 1; i <= size; i++) {
-            Ewok tmp = new Ewok(serialNum);
-            ewoks[i] = tmp;
-        }
-    }
-
-
 }
 
