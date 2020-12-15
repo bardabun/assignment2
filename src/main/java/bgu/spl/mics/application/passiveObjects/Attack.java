@@ -22,10 +22,6 @@ public class Attack {
         this.duration = duration;
     }
 
-    public List<Integer> getSerieals(){
-        return serials;
-    }
-
     public int getDuration(){
         return duration;
     }

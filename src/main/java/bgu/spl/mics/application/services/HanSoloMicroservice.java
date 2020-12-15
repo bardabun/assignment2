@@ -1,15 +1,17 @@
 package bgu.spl.mics.application.services;
-
-
+import bgu.spl.mics.Callback;
 import bgu.spl.mics.Message;
 import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AttackEvent;
+import bgu.spl.mics.application.messages.TerminationBroadcast;
+import bgu.spl.mics.application.passiveObjects.Attack;
+import bgu.spl.mics.application.passiveObjects.Diary;
 import bgu.spl.mics.application.passiveObjects.Ewok;
 import bgu.spl.mics.application.passiveObjects.Ewoks;
-
+import java.io.DataInput;
 import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,36 +25,43 @@ import java.util.concurrent.ConcurrentHashMap;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class HanSoloMicroservice extends MicroService {
-    private Map<Ewok, Boolean> ewoksAvailability = new ConcurrentHashMap<>();
+    private Diary diary;
+    private Ewoks ewok;
+    private Callback<AttackEvent> callAttack = (AttackEvent att) -> {
+        Attack attack = att.getAttack();
+        int size = attack.getSerialsSize();
+        List<Integer> serials = attack.getSerials();
+        for (int i = 0; i < size; i++) {
+            ewok.acquire(serials.get(i));
+        }
+        //sleep for the duration of the attack
+        try {
+            Thread.sleep(attack.getDuration());
+        } catch (Exception e) {
+        }
+        for (int i = 0; i < size; i++) {//release the ewoks when you done sleeping
+            ewok.release(serials.get(i));
+        }
+        diary.HanSoloFinish = System.currentTimeMillis();
+        diary.totalAttacks.incrementAndGet();
+    };
 
-    public HanSoloMicroservice() {
+
+    public HanSoloMicroservice(Ewoks ewoks) {
         super("Han");
-    }
-
-    public void acquireEwoks(int size) {
-
+        ewok = ewoks;
     }
 
     @Override
     protected void initialize() {
-        subscribeEvent(AttackEvent.class, callback -> {
-        List<Integer> ewoksSerialsNum = callback.getAttack().getSerials();
-        //ewoksAvailability.acquireEwoks(ewoksSerialsNum.size());
-            ewoksSerialsNum.sort(Comparator.comparingInt(Integer::intValue));//?????
-           Ewoks ew =  Ewoks.getInstance();
-           //ask tomorrow where the initialize of the ewok happening
-           ew.initialize(callback.getAttack().getSerialsSize(), ewoksSerialsNum.get(i));
-            //e.sort();
-            for(int i : ewoksSerialsNum){
+        subscribeBroadcast(TerminationBroadcast.class, (TerminationBroadcast terminationBroadcast) -> {
+            terminate();
+            diary.HanSoloTerminate= System.currentTimeMillis();
+        });
 
-                ew[i].acquire();
-            try{
-                Thread.sleep(callback.getAttack().getDuration());
-            } catch(Exception e){
-                for(int i: ewoksSerialsNum)
-                    ew[i]
-            }
-
-    });
+        subscribeEvent(AttackEvent.class, callAttack);
     }
 }
+
+
+

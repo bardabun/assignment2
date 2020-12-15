@@ -1,8 +1,15 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Callback;
 import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AttackEvent;
+import bgu.spl.mics.application.messages.TerminationBroadcast;
+import bgu.spl.mics.application.passiveObjects.Attack;
+import bgu.spl.mics.application.passiveObjects.Diary;
+import bgu.spl.mics.application.passiveObjects.Ewoks;
+
+import java.util.List;
 
 
 /**
@@ -14,13 +21,39 @@ import bgu.spl.mics.application.messages.AttackEvent;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class C3POMicroservice extends MicroService {
-	
-    public C3POMicroservice() {
+	private Diary diary;
+    private Ewoks ewok;
+    private Callback<AttackEvent> callAttack = (AttackEvent att) -> {
+        Attack attack = att.getAttack();
+        int size = attack.getSerialsSize();
+        List<Integer> serials = attack.getSerials();
+        for (int i = 0; i < size; i++) {
+            ewok.acquire(serials.get(i));
+        }
+        //sleep for the duration of the attack
+        try {
+            Thread.sleep(attack.getDuration());
+        } catch (Exception e) {
+        }
+        for (int i = 0; i < size; i++) {//release the ewoks when you done sleeping
+            ewok.release(serials.get(i));
+        }
+        diary.C3POFinish = System.currentTimeMillis();
+        diary.totalAttacks.incrementAndGet();
+    };
+
+    public C3POMicroservice(Ewoks ewoks) {
         super("C3PO");
+        ewok = ewoks;
     }
 
     @Override
     protected void initialize() {
+        subscribeBroadcast(TerminationBroadcast.class, (TerminationBroadcast terminationBroadcast) -> {
+            terminate();
+            diary.C3POTerminate= System.currentTimeMillis();
+        });
 
+        subscribeEvent(AttackEvent.class, callAttack);
     }
 }

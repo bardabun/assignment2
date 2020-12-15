@@ -12,19 +12,30 @@ package bgu.spl.mics.application.passiveObjects;
 public class Ewoks {
     private Ewok[] ewoks;
 
+    public void release(Integer num) {
+        ewoks[num].release();
+    }
+
     private static class SingletonHolder {
         private static Ewoks instance = new Ewoks();
 
     }
     private Ewoks() {
     }
+    public Ewok[] getEwoks(){return ewoks;}
     public static Ewoks getInstance() {
         return SingletonHolder.instance;
     }
-
+    public boolean acquire(int num) {
+        if (ewoks[num].available) {
+            ewoks[num].acquire();
+            return true;
+        }
+        return false;
+    }
     public void initialize(int size, int serialNum) {
         ewoks = new Ewok[ size + 1];
-        for (int i = 0; i <= size; i++) {
+        for (int i = 1; i <= size; i++) {
             Ewok tmp = new Ewok(serialNum);
             ewoks[i] = tmp;
         }

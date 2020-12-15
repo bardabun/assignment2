@@ -63,6 +63,8 @@ public abstract class MicroService implements Runnable { // we may use protected
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        callBacks.put(type , callback);
+
     }
 
     /**
@@ -91,6 +93,7 @@ public abstract class MicroService implements Runnable { // we may use protected
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        callBacks.put(type , callback);
     }
 
     /**

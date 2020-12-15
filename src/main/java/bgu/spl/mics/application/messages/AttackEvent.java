@@ -12,7 +12,4 @@ public class AttackEvent implements Event<Boolean> {
 	public Attack getAttack(){return attack;};
 
 	@Override
-	public String getType() {
-		return "AttackEvent";
-	}
 }

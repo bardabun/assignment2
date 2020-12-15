@@ -160,7 +160,7 @@ public class MessageBusImpl implements MessageBus {
 		}
 
 		afterRead();
-		return output;									//<------------------
+		return output;
 	}
 
 	protected synchronized void beforeRead() throws InterruptedException {
