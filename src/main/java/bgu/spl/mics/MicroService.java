@@ -193,6 +193,6 @@ public abstract class MicroService implements Runnable { // we may use protected
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
+        }
 
 }
