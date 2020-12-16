@@ -10,6 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Diary {
 
+    public void resetNumberAttacks() {
+        totalAttacks=new AtomicInteger(0);
+    }
+
     private static class SingletonHolder {
         private static Diary instance = new Diary();
     }
