@@ -49,7 +49,9 @@ public class LeiaMicroservice extends MicroService {
         }
 
         for(Future future: futures){
+            System.out.println("Leia is waiting for future");
             future.get();
+            System.out.println("Leia got the future");
         }
 
         System.out.println("Leia got all futures");

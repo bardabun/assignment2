@@ -187,6 +187,7 @@ public abstract class MicroService implements Runnable { // we may use protected
                 Callback to = callBacks.get(action.getClass());
                 to.call(action);
             }
+
         }
             msgBus.unregister(this);
 
