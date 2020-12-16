@@ -53,6 +53,8 @@ public class MessageBusImpl implements MessageBus {
 				microReferences.put(m, new LinkedList<>());
 			microReferences.get(m).add(type);
 
+			System.out.println("Microservice: " + m.getName() + " subscribed to event type: " + type.getName());
+
 		} else{
 			System.out.println("You didn't register '" + m.getName() + "' yet");
 		}
@@ -76,6 +78,9 @@ public class MessageBusImpl implements MessageBus {
 				microReferences.put(m, new LinkedList<>());
 			microReferences.get(m).add(type);
 
+			System.out.println("Microservice: " + m.getName() + " subscribed to broadcast type: " + type.getName());
+
+
 		} else{
 			System.out.println("You didn't register '" + m.getName() + "' yet");
 		}
@@ -87,6 +92,9 @@ public class MessageBusImpl implements MessageBus {
 	public <T> void complete(Event<T> e, T result) throws InterruptedException {	//it's change the future to isdone // that how Lia could know when all the attacks is done and she could say to r2d2 to take off the shields
 		beforeWrite();
 		eventsFuture.get(e).resolve(result);
+
+		System.out.println("Event: " + e + " completed with the result: " + result);
+
 		afterWrite();
 	}
 
@@ -97,6 +105,9 @@ public class MessageBusImpl implements MessageBus {
 		if(messageTypeMicro.containsKey(b.getClass())){
 			for(MicroService micro : messageTypeMicro.get(b.getClass()))
 				registeredMicro.get(micro).add(b);
+
+			System.out.println("Broadcast: " + b + "  has been sent and added it to 'events future Map'");
+
 		} else
 			System.out.println("Broadcast type: " + b + " has no registered MicroServices");
 
@@ -115,6 +126,8 @@ public class MessageBusImpl implements MessageBus {
 			microsQueue.add(micro);
 
 			eventsFuture.put(e ,new Future<T>());
+
+			System.out.println("Event: " + e + "  has been sent and added it to 'events future Map'");
 		}
 
 		afterWrite();
@@ -129,6 +142,8 @@ public class MessageBusImpl implements MessageBus {
 		if(!registeredMicro.containsKey(m))
 			registeredMicro.put(m, new LinkedList<Message>());
 
+		System.out.println(m.getName() + " registered successfully -->");
+
 		afterWrite();
 	}
 
@@ -142,6 +157,9 @@ public class MessageBusImpl implements MessageBus {
 				messageTypeMicro.get(ref).remove(m);
 			}
 			registeredMicro.remove(m);
+
+			System.out.println(m.getName() + " unregistered successfully -/->");
+
 		}catch(Exception e){
 			System.out.println(e);
 		}

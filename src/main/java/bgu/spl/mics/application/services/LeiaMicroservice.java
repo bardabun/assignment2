@@ -24,7 +24,7 @@ import bgu.spl.mics.application.passiveObjects.Diary;
 public class LeiaMicroservice extends MicroService {
 	private Attack[] attacks;
 	private List<Future> futures;
-	private Diary diary;
+	private Diary diary = Diary.getInstance();
 
     public LeiaMicroservice(Attack[] attacks) {
         super("Leia");
@@ -51,6 +51,8 @@ public class LeiaMicroservice extends MicroService {
         for(Future future: futures){
             future.get();
         }
+
+        System.out.println("Leia got all futures");
 
         Future future = sendEvent(new DeactivationEvent());
         future.get();

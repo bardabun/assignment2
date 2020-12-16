@@ -12,7 +12,7 @@ import bgu.spl.mics.application.passiveObjects.Diary;
  */
 public class LandoMicroservice  extends MicroService {
     private long duration;
-    private Diary diary;
+    private Diary diary = Diary.getInstance();
     public LandoMicroservice(long duration) {
 
         super("Lando");

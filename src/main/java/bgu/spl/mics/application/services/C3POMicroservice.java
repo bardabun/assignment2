@@ -21,7 +21,7 @@ import java.util.List;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class C3POMicroservice extends MicroService {
-	private Diary diary;
+	private Diary diary = Diary.getInstance();
     private Ewoks ewok;
     private Callback<AttackEvent> callAttack = (AttackEvent att) -> {
         Attack attack = att.getAttack();
